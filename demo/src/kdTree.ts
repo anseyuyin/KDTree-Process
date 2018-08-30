@@ -141,28 +141,36 @@ export class kdTree {
 
     private leafNode(tnode:node,data:number[]){
         if(!tnode) return;
-        if(tnode.axis < 0){
-            //找到叶节点
-            let dist = this.distance(data,tnode.data);
-            if(isNaN(this.helpRadius)){
-                this.helpNearQueue.push(tnode);
-                this.helpRadius = dist;
-            } else if(dist<= this.helpRadius){
-                this.insertQueue(this.helpLastDist<dist,this.helpNearQueue,tnode);
-                // this.helpNearQueue.push(tnode);
-                //this.nearDist = dist;
-            }
-            this.helpLastDist = dist;
-            //回溯
-            let bnode = this.helpBackQueue.pop();
-            this.backNode(bnode,data);
+        if(tnode.axis < 0 ){
+            this.doLeaf(tnode,data);
         }else{
             this.helpBackQueue.push(tnode);
             //判断选择
             let nextNode = this.chooseLeft(data,tnode) ? tnode.left: tnode.right;
-            this.leafNode(nextNode,data);
+            if(!nextNode){
+                this.doLeaf(tnode,data);
+            }else{
+                this.leafNode(nextNode,data);
+            }
         }
+    }
 
+    private doLeaf(tnode:node,data:number[]){
+        if(!tnode) return;
+         //找到叶节点
+        let dist = this.distance(data,tnode.data);
+        if(isNaN(this.helpRadius)){
+            this.helpNearQueue.push(tnode);
+            this.helpRadius = dist;
+        } else if(dist<= this.helpRadius){
+            this.insertQueue(this.helpLastDist<dist,this.helpNearQueue,tnode);
+            // this.helpNearQueue.push(tnode);
+            //this.nearDist = dist;
+        }
+        this.helpLastDist = dist;
+        //回溯
+        let bnode = this.helpBackQueue.pop();
+        this.backNode(bnode,data);
     }
 
     //-----------Tool funs---------------
