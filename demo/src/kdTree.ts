@@ -84,8 +84,8 @@ export class kdTree {
      * @param pos search center position
      * @param out Search result [pos,pos1,pos2....]
      */
-    search(radius:number,pos:number[],out:number[][]){
-        if(radius<0 || !out || !pos || pos.length != this.dimeAmount)return;
+    search(radius:number,pos:number[],out:number[][]) :boolean{
+        if(radius<0 || !out || !pos || pos.length != this.dimeAmount)return false;
         this.helpNearQueue.length = this.helpBackQueue.length = 0;
         this.helpRadius = radius;
         let root =  this.rootNode;
@@ -98,6 +98,7 @@ export class kdTree {
                 out.push(arr);
             }
         });
+        return true;
     }
 
     private helpNearQueue :node[] = [];
@@ -109,13 +110,14 @@ export class kdTree {
      * @param pos finding center position
      * @param out finding result
      */
-    find(pos:number[],out:number[]){
-        if(!out || !pos || pos.length != this.dimeAmount) return;
+    find(pos:number[],out:number[]):boolean{
+        if(!out || !pos || pos.length != this.dimeAmount) return false;
         this.helpNearQueue.length = this.helpBackQueue.length = 0;
         this.helpRadius = NaN;
         let root =  this.rootNode;
         this.leafNode(root,pos);
         this.syncData(this.helpNearQueue.pop().data,out);
+        return true;
     }
 
     private backNode(tnode:node,data:number[]){
