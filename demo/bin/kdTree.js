@@ -86,7 +86,7 @@ System.register([], function (exports_1, context_1) {
                 kdTree.prototype.search = function (radius, pos, out) {
                     var _this = this;
                     if (radius < 0 || !out || !pos || pos.length != this.dimeAmount)
-                        return;
+                        return false;
                     this.helpNearQueue.length = this.helpBackQueue.length = 0;
                     this.helpRadius = radius;
                     var root = this.rootNode;
@@ -99,15 +99,17 @@ System.register([], function (exports_1, context_1) {
                             out.push(arr);
                         }
                     });
+                    return true;
                 };
                 kdTree.prototype.find = function (pos, out) {
                     if (!out || !pos || pos.length != this.dimeAmount)
-                        return;
+                        return false;
                     this.helpNearQueue.length = this.helpBackQueue.length = 0;
                     this.helpRadius = NaN;
                     var root = this.rootNode;
                     this.leafNode(root, pos);
                     this.syncData(this.helpNearQueue.pop().data, out);
+                    return true;
                 };
                 kdTree.prototype.backNode = function (tnode, data) {
                     if (!tnode)
@@ -131,23 +133,33 @@ System.register([], function (exports_1, context_1) {
                     if (!tnode)
                         return;
                     if (tnode.axis < 0) {
-                        var dist = this.distance(data, tnode.data);
-                        if (isNaN(this.helpRadius)) {
-                            this.helpNearQueue.push(tnode);
-                            this.helpRadius = dist;
-                        }
-                        else if (dist <= this.helpRadius) {
-                            this.insertQueue(this.helpLastDist < dist, this.helpNearQueue, tnode);
-                        }
-                        this.helpLastDist = dist;
-                        var bnode = this.helpBackQueue.pop();
-                        this.backNode(bnode, data);
+                        this.doLeaf(tnode, data);
                     }
                     else {
                         this.helpBackQueue.push(tnode);
                         var nextNode = this.chooseLeft(data, tnode) ? tnode.left : tnode.right;
-                        this.leafNode(nextNode, data);
+                        if (!nextNode) {
+                            this.doLeaf(tnode, data);
+                        }
+                        else {
+                            this.leafNode(nextNode, data);
+                        }
                     }
+                };
+                kdTree.prototype.doLeaf = function (tnode, data) {
+                    if (!tnode)
+                        return;
+                    var dist = this.distance(data, tnode.data);
+                    if (isNaN(this.helpRadius)) {
+                        this.helpNearQueue.push(tnode);
+                        this.helpRadius = dist;
+                    }
+                    else if (dist <= this.helpRadius) {
+                        this.insertQueue(this.helpLastDist < dist, this.helpNearQueue, tnode);
+                    }
+                    this.helpLastDist = dist;
+                    var bnode = this.helpBackQueue.pop();
+                    this.backNode(bnode, data);
                 };
                 kdTree.prototype.maxVariance = function (datas) {
                     if (datas.length < 1)

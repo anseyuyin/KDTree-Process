@@ -4,14 +4,15 @@ export declare class kdTree {
     buildTree(datas: number[][]): void;
     private build(tnode, datas);
     private clearTree(tnode);
-    search(radius: number, pos: number[], out: number[][]): void;
+    search(radius: number, pos: number[], out: number[][]): boolean;
     private helpNearQueue;
     private helpBackQueue;
     private helpRadius;
     private helpLastDist;
-    find(pos: number[], out: number[]): void;
+    find(pos: number[], out: number[]): boolean;
     private backNode(tnode, data);
     private leafNode(tnode, data);
+    private doLeaf(tnode, data);
     private maxVariance(datas);
     private mid(axis, datas);
     private syncData(src, out);
