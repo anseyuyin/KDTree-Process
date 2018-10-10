@@ -8,7 +8,7 @@ export declare class kdTree {
     private helpNearQueue;
     private helpBackQueue;
     private helpRadius;
-    private helpLastDist;
+    private helpLastMinDist;
     find(pos: number[], out: number[]): boolean;
     private backNode(tnode, data);
     private leafNode(tnode, data);

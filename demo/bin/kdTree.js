@@ -36,7 +36,6 @@ System.register([], function (exports_1, context_1) {
                     this.helpNearQueue = [];
                     this.helpBackQueue = [];
                     this.helpRadius = Number.MAX_VALUE;
-                    this.helpLastDist = Number.MAX_VALUE;
                 }
                 kdTree.prototype.buildTree = function (datas) {
                     this.clearTree(this.rootNode);
@@ -89,6 +88,7 @@ System.register([], function (exports_1, context_1) {
                         return false;
                     this.helpNearQueue.length = this.helpBackQueue.length = 0;
                     this.helpRadius = radius;
+                    this.helpLastMinDist = Number.MAX_VALUE;
                     var root = this.rootNode;
                     this.leafNode(root, pos);
                     out.length = 0;
@@ -106,6 +106,7 @@ System.register([], function (exports_1, context_1) {
                         return false;
                     this.helpNearQueue.length = this.helpBackQueue.length = 0;
                     this.helpRadius = NaN;
+                    this.helpLastMinDist = Number.MAX_VALUE;
                     var root = this.rootNode;
                     this.leafNode(root, pos);
                     this.syncData(this.helpNearQueue.pop().data, out);
@@ -116,15 +117,24 @@ System.register([], function (exports_1, context_1) {
                         return;
                     var dist = this.distance(data, tnode.data);
                     if (dist <= this.helpRadius) {
-                        this.insertQueue(this.helpLastDist < dist, this.helpNearQueue, tnode);
+                        this.insertQueue(this.helpLastMinDist < dist, this.helpNearQueue, tnode);
                     }
-                    this.helpLastDist = dist;
+                    this.helpLastMinDist = dist < this.helpLastMinDist ? dist : this.helpLastMinDist;
                     var isInter = this.intersectSplit(this.helpRadius, data, tnode);
+                    var needBack = false;
                     if (isInter) {
                         var nextNode = !this.chooseLeft(data, tnode) ? tnode.left : tnode.right;
-                        this.leafNode(nextNode, data);
+                        if (!nextNode) {
+                            needBack = true;
+                        }
+                        else {
+                            this.leafNode(nextNode, data);
+                        }
                     }
                     else {
+                        needBack = true;
+                    }
+                    if (needBack) {
                         var bnode = this.helpBackQueue.pop();
                         this.backNode(bnode, data);
                     }
@@ -155,9 +165,9 @@ System.register([], function (exports_1, context_1) {
                         this.helpRadius = dist;
                     }
                     else if (dist <= this.helpRadius) {
-                        this.insertQueue(this.helpLastDist < dist, this.helpNearQueue, tnode);
+                        this.insertQueue(this.helpLastMinDist < dist, this.helpNearQueue, tnode);
                     }
-                    this.helpLastDist = dist;
+                    this.helpLastMinDist = dist < this.helpLastMinDist ? dist : this.helpLastMinDist;
                     var bnode = this.helpBackQueue.pop();
                     this.backNode(bnode, data);
                 };

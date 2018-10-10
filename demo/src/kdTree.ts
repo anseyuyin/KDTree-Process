@@ -88,6 +88,7 @@ export class kdTree {
         if(radius<0 || !out || !pos || pos.length != this.dimeAmount)return false;
         this.helpNearQueue.length = this.helpBackQueue.length = 0;
         this.helpRadius = radius;
+        this.helpLastMinDist = Number.MAX_VALUE;
         let root =  this.rootNode;
         this.leafNode(root,pos);
         out.length = 0;
@@ -104,7 +105,7 @@ export class kdTree {
     private helpNearQueue :node[] = [];
     private helpBackQueue :node[] = [];
     private helpRadius: number = Number.MAX_VALUE;
-    private helpLastDist: number = Number.MAX_VALUE;
+    private helpLastMinDist: number ;
     /**
      * finding one of most near neighbor
      * @param pos finding center position
@@ -114,6 +115,7 @@ export class kdTree {
         if(!out || !pos || pos.length != this.dimeAmount) return false;
         this.helpNearQueue.length = this.helpBackQueue.length = 0;
         this.helpRadius = NaN;
+        this.helpLastMinDist = Number.MAX_VALUE;
         let root =  this.rootNode;
         this.leafNode(root,pos);
         this.syncData(this.helpNearQueue.pop().data,out);
@@ -125,17 +127,26 @@ export class kdTree {
         let dist = this.distance(data,tnode.data);
         //判断距离
         if(dist<= this.helpRadius){
-            this.insertQueue(this.helpLastDist<dist,this.helpNearQueue,tnode);
+            this.insertQueue(this.helpLastMinDist<dist,this.helpNearQueue,tnode);
             //this.helpNearQueue.push(tnode);
             //this.nearDist = dist;
         }
-        this.helpLastDist = dist;
+        this.helpLastMinDist = dist < this.helpLastMinDist ? dist: this.helpLastMinDist;
         //判断是否相交
         let isInter = this.intersectSplit(this.helpRadius,data,tnode);
+        let needBack = false;
         if(isInter){
             let nextNode = !this.chooseLeft(data,tnode) ? tnode.left: tnode.right;
-            this.leafNode(nextNode,data);
+            if(!nextNode){
+                needBack = true;
+            }else{
+                this.leafNode(nextNode,data);
+            }
         }else{
+            needBack = true;
+        }
+
+        if(needBack){
             let bnode = this.helpBackQueue.pop();
             this.backNode(bnode,data);
         }
@@ -165,11 +176,11 @@ export class kdTree {
             this.helpNearQueue.push(tnode);
             this.helpRadius = dist;
         } else if(dist<= this.helpRadius){
-            this.insertQueue(this.helpLastDist<dist,this.helpNearQueue,tnode);
+            this.insertQueue(this.helpLastMinDist<dist,this.helpNearQueue,tnode);
             // this.helpNearQueue.push(tnode);
             //this.nearDist = dist;
         }
-        this.helpLastDist = dist;
+        this.helpLastMinDist = dist < this.helpLastMinDist ? dist: this.helpLastMinDist;
         //回溯
         let bnode = this.helpBackQueue.pop();
         this.backNode(bnode,data);
